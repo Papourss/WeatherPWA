@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Lien vers le CSS de Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+    <!-- Lien vers le JS de Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <link rel="manifest" href="/manifest.json"> 
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/images/icons-192.png">
+</head>
+<body>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        html, body {
+            height: 90%;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    
+    <div id="map"></div>
+    <button id="meLoc">Me Localiser</button>
+
+    <script>
+        // Initialisation de la carte
+        var map = L.map('map').setView([51.505, -0.09], 13);
+
+        // Ajout de la couche OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+
+        const meLoc = document.querySelector("#meLoc")
+        meLoc.addEventListener('click',() => {
+            navigator.geolocation.getCurrentPosition(
+            (position) => {
+                let latitude = position.coords.latitude
+                let longitude = position.coords.longitude
+
+                var marker = L.marker([latitude, longitude]).addTo(map);
+
+                map.setView([latitude, longitude], 13);
+            
+
+
+
+        const apiKey = "c8e87e8006e651c90643bfc35c5ebeae"; // Clé API OpenWeather
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&lang=fr&units=metric`;
+
+        fetch(weatherUrl)
+            .then((response) => response.json())
+            .then((data) => {
+                // Extraire les données météo
+                const weatherDescription = data.weather[0].description;
+                const temperature = data.main.temp;
+                const humidity = data.main.humidity;
+                const windSpeed = data.wind.speed;
+
+                // Créer le contenu de la popup
+                const weatherInfo = `
+                    Description: ${weatherDescription}<br>
+                    Température: ${temperature}°C<br>
+                    Humidité: ${humidity}%<br>
+                    Vent: ${windSpeed} m/s
+                `;
+
+                // Lier ces informations à un marqueur et ouvrir la popup
+                marker.bindPopup(weatherInfo).openPopup();
+            })
+            .catch((error) => {
+                console.error("Erreur lors de la récupération des données météo :", error);
+            });
+
+        },
+            (erreur) => {
+                alert("Géolocalisation non accessible :", erreur);
+            }
+            );
+        })
+
+        map.addEventListener('click',() => {
+            map.on('click', function(event) {
+            // Récupérer les coordonnées du clic
+            const latitude = event.latlng.lat;
+            const longitude = event.latlng.lng;
+
+            // Afficher les coordonnées dans la console
+            console.log(`Latitude : ${latitude}, Longitude : ${longitude}`);
+
+            // Ajouter un marqueur aux coordonnées du clic
+            const marker = L.marker([latitude, longitude]).addTo(map);
+
+            // Ajouter une popup au marqueur
+            marker.bindPopup(`Coordonnées : ${latitude}, ${longitude}`).openPopup();
+
+            const apiKey = "c8e87e8006e651c90643bfc35c5ebeae"; // Clé API OpenWeather
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&lang=fr&units=metric`;
+
+        fetch(weatherUrl)
+            .then((response) => response.json())
+            .then((data) => {
+                // Extraire les données météo
+                const weatherDescription = data.weather[0].description;
+                const temperature = data.main.temp;
+                const humidity = data.main.humidity;
+                const windSpeed = data.wind.speed;
+
+                // Créer le contenu de la popup
+                const weatherInfo = `
+                    Description: ${weatherDescription}<br>
+                    Température: ${temperature}°C<br>
+                    Humidité: ${humidity}%<br>
+                    Vent: ${windSpeed} m/s
+                `;
+
+                // Lier ces informations à un marqueur et ouvrir la popup
+                marker.bindPopup(weatherInfo).openPopup();
+            })
+        })
+        })
+
+        window.addEventListener("load", () => {
+        if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js");
+        }
+        });
+    </script>
+</body>
+</html>
